@@ -1,0 +1,8 @@
+:host {
+  display: block;
+}
+
+/* Smooth scroll for the alert lists */
+ul {
+  scrollbar-width: thin;
+}

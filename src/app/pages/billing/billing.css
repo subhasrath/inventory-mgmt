@@ -1,0 +1,8 @@
+:host {
+  display: block;
+}
+
+/* Prevent the barcode input from showing browser autocomplete dropdown */
+#barcodeInput::-webkit-calendar-picker-indicator {
+  display: none !important;
+}

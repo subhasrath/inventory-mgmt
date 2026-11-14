@@ -1,0 +1,150 @@
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+  <div class="mx-auto max-w-6xl">
+
+    <div class="mb-6 flex items-center justify-between">
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Item Master</h1>
+      <a routerLink="/dashboard" class="text-sm text-blue-600 hover:underline dark:text-blue-400">← Dashboard</a>
+    </div>
+
+    <!-- Form -->
+    <div class="mb-6 rounded-lg bg-white p-6 shadow dark:bg-gray-800">
+      <h2 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
+        {{ editing ? 'Edit Item' : 'Add Item' }}
+      </h2>
+
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div>
+          <label class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Item Number *</label>
+          <input [(ngModel)]="form.itemNumber"
+            class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
+        </div>
+        <div>
+          <label class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Item Name *</label>
+          <input [(ngModel)]="form.itemName"
+            class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
+        </div>
+        <div>
+          <label class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Barcode</label>
+          <input [(ngModel)]="form.barcode" placeholder="Scan or type"
+            class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
+        </div>
+
+        <div>
+          <label class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">HSN Code</label>
+          <input [(ngModel)]="form.hsnCode"
+            class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
+        </div>
+        <div>
+          <label class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">GST Rate %</label>
+          <select [(ngModel)]="form.gstRate"
+            class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+            <option [ngValue]="0">0%</option>
+            <option [ngValue]="5">5%</option>
+            <option [ngValue]="12">12%</option>
+            <option [ngValue]="18">18%</option>
+            <option [ngValue]="28">28%</option>
+          </select>
+        </div>
+        <div>
+          <label class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Unit</label>
+          <select [(ngModel)]="form.unit"
+            class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+            <option>PCS</option>
+            <option>STRIP</option>
+            <option>BOX</option>
+            <option>KG</option>
+            <option>GM</option>
+            <option>LTR</option>
+            <option>ML</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Unit Price ₹</label>
+          <input [(ngModel)]="form.unitPrice" type="number" step="0.01"
+            class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
+        </div>
+        <div>
+          <label class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Default Discount %</label>
+          <input [(ngModel)]="form.discount" type="number" step="0.01"
+            class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
+        </div>
+        <div>
+          <label class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">Reorder Level</label>
+          <input [(ngModel)]="form.reorderLevel" type="number"
+            class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
+        </div>
+      </div>
+
+      <div class="mt-4 flex items-center gap-3">
+        <button (click)="save()" [disabled]="saving"
+          class="rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 disabled:opacity-50 dark:bg-blue-600">
+          {{ saving ? 'Saving...' : (editing ? 'Update' : 'Add Item') }}
+        </button>
+        <button *ngIf="editing" (click)="cancel()"
+          class="rounded-lg border border-gray-300 px-4 py-2 text-sm dark:border-gray-600 dark:text-gray-200">
+          Cancel
+        </button>
+        <span *ngIf="message" class="text-sm" [class.text-green-600]="success" [class.text-red-600]="!success">{{
+          message }}</span>
+      </div>
+    </div>
+
+    <!-- List -->
+    <div class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
+      <div class="mb-4 flex items-center justify-between">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Items ({{ items.length }})</h2>
+        <input [(ngModel)]="search" (ngModelChange)="onSearch()" placeholder="Search name..."
+          class="w-64 rounded-lg border border-gray-300 bg-gray-50 p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="border-b border-gray-200 dark:border-gray-700">
+            <tr class="text-left text-xs font-medium text-gray-500 dark:text-gray-400">
+              <th class="pb-2">Item #</th>
+              <th class="pb-2">Name</th>
+              <th class="pb-2">Barcode</th>
+              <th class="pb-2">HSN</th>
+              <th class="pb-2">GST%</th>
+              <th class="pb-2">Price</th>
+              <th class="pb-2">Stock</th>
+              <th class="pb-2">Status</th>
+              <th class="pb-2"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let i of items" class="border-b border-gray-100 dark:border-gray-700">
+              <td class="py-2 font-mono text-xs">{{ i.itemNumber }}</td>
+              <td class="py-2">{{ i.itemName }}</td>
+              <td class="py-2 font-mono text-xs">{{ i.barcode || '—' }}</td>
+              <td class="py-2">{{ i.hsnCode || '—' }}</td>
+              <td class="py-2">{{ i.gstRate }}%</td>
+              <td class="py-2">₹ {{ i.unitPrice | number:'1.2-2' }}</td>
+              <td class="py-2">{{ i.totalStock ?? 0 }} {{ i.unit }}</td>
+              <td class="py-2">
+                <span class="rounded-full px-2 py-0.5 text-xs" [class.bg-green-100]="i.status === 'Active'"
+                  [class.text-green-800]="i.status === 'Active'" [class.bg-gray-100]="i.status !== 'Active'"
+                  [class.text-gray-600]="i.status !== 'Active'">
+                  {{ i.status }}
+                </span>
+              </td>
+              <td class="py-2 text-right">
+                <button (click)="edit(i)"
+                  class="mr-2 text-xs text-blue-600 hover:underline dark:text-blue-400">Edit</button>
+                <button *ngIf="i.status === 'Active'" (click)="deactivate(i)"
+                  class="text-xs text-red-600 hover:underline dark:text-red-400">Deactivate</button>
+                <button *ngIf="i.status !== 'Active'" (click)="activate(i)"
+                  class="text-xs text-green-600 hover:underline dark:text-green-400">Activate</button>
+              </td>
+            </tr>
+            <tr *ngIf="items.length === 0">
+              <td colspan="9" class="py-6 text-center text-gray-500">No items yet — add your first item above.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
