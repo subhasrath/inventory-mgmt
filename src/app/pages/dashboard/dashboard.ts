@@ -134,7 +134,7 @@ changePassword() {
 
   // ---------------- actions ----------------
   goToCompanySettings() {
-    this.router.navigateByUrl('/settings/company');
+    this.router.navigateByUrl('/my-company-settings');
   }
   goToBilling() {
     this.router.navigateByUrl('/billing');

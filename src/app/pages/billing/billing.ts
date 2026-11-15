@@ -160,6 +160,14 @@ export class Billing implements OnInit, AfterViewInit, OnDestroy{
     this.cdr.markForCheck();
   }
 
+  onDiscountChange(i: number, d: number) {
+  const line = this.cart[i];
+  const val = Number(d) || 0;
+  line.discount = Math.max(0, Math.min(100, val));    // clamp 0–100
+  this.recalc(line);
+  this.cdr.markForCheck();
+}
+
   removeLine(i: number) {
     this.cart.splice(i, 1);
     this.cdr.markForCheck();
