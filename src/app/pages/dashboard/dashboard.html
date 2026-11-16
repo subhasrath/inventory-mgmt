@@ -1,64 +1,53 @@
-<div class="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-6">
   <div class="mx-auto max-w-6xl space-y-6">
 
     <!-- Header -->
-    <div class="flex items-center justify-between">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div>
         <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          Welcome back, <span class="font-medium">{{ user()?.fullName }}</span>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          Welcome back,
+          <span class="font-medium">{{ user()?.fullName || user()?.username || 'there' }}</span>
         </p>
       </div>
       <div class="flex items-center gap-2">
-        <button
-          (click)="goToBilling()"
-          class="rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 dark:bg-blue-600 dark:hover:bg-blue-700">
+        <button type="button"
+                (click)="goToBilling()"
+                [disabled]="!companyConfigured()"
+                [attr.title]="!companyConfigured() ? 'Set up your shop first' : null"
+                class="rounded-lg bg-blue-700 px-4 py-2 text-sm font-medium text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-blue-600 dark:hover:bg-blue-700">
           New Bill
         </button>
-        <button
-          (click)="logout()"
-          class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">
+        <button type="button"
+                (click)="logout()"
+                class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">
           Logout
         </button>
       </div>
     </div>
 
     <!-- Nav strip -->
-<div class="flex flex-wrap gap-2">
-  <a routerLink="/items"
-     class="rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">
-    Items
-  </a>
-  <a routerLink="/vendors"
-     class="rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">
-    Vendors
-  </a>
-  <a routerLink="/purchases"
-     class="rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">
-    Purchases
-  </a>
-  <a routerLink="/billing"
-     class="rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">
-    Billing
-  </a>
-  <a routerLink="/my-company-settings"
-     class="rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">
-    My Settings
-  </a>
-  <a routerLink="/sales-history"
-   class="rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">
-  Sales History
-</a>
-<a routerLink="/purchase-history"
-   class="rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">
-  Purchase History
-</a>
-</div>
+    <nav class="flex flex-wrap gap-2" aria-label="Main">
+      <a *ngFor="let link of [
+            { path: '/items', label: 'Items' },
+            { path: '/vendors', label: 'Vendors' },
+            { path: '/purchases', label: 'Purchases' },
+            { path: '/billing', label: 'Billing' },
+            { path: '/my-company-settings', label: 'My Settings' },
+            { path: '/sales-history', label: 'Sales History' },
+            { path: '/purchase-history', label: 'Purchase History' }
+         ]"
+         [routerLink]="link.path"
+         class="rounded-lg bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700">
+        {{ link.label }}
+      </a>
+    </nav>
 
     <!-- Onboarding banner -->
-    <div *ngIf="!companyConfigured()"
+    <div *ngIf="!companyConfigured() && !companyCheckFailed"
+         role="status"
          class="rounded-lg border border-yellow-300 bg-yellow-50 p-4 dark:border-yellow-600 dark:bg-yellow-900/30">
-      <div class="flex items-start justify-between gap-4">
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h3 class="text-sm font-semibold text-yellow-900 dark:text-yellow-200">
             Setup incomplete
@@ -67,9 +56,9 @@
             Please configure your shop details (GSTIN, address, state) before creating invoices.
           </p>
         </div>
-        <button
-          (click)="goToCompanySettings()"
-          class="rounded-lg bg-yellow-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-yellow-700">
+        <button type="button"
+                (click)="goToCompanySettings()"
+                class="shrink-0 rounded-lg bg-yellow-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-yellow-700">
           Set up now
         </button>
       </div>
@@ -80,36 +69,48 @@
       <div class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
         <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Today's Sales</p>
         <p class="mt-2 text-3xl font-bold text-gray-900 dark:text-white">
-          <span *ngIf="!summaryLoading; else loadingBlock">
-            ₹ {{ summary()?.todaySales | number:'1.2-2' }}
-          </span>
+          <ng-container *ngIf="!summaryLoading; else loadingBlock">
+            ₹ {{ summary()?.todaySales ?? 0 | number:'1.2-2' }}
+          </ng-container>
         </p>
       </div>
 
       <div class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
         <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Invoices Today</p>
         <p class="mt-2 text-3xl font-bold text-gray-900 dark:text-white">
-          <span *ngIf="!summaryLoading; else loadingBlock">
+          <ng-container *ngIf="!summaryLoading; else loadingBlock">
             {{ summary()?.todayInvoiceCount ?? 0 }}
-          </span>
+          </ng-container>
         </p>
       </div>
 
       <div class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
         <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Low Stock Items</p>
         <p class="mt-2 text-3xl font-bold text-red-600 dark:text-red-400">
-          <span *ngIf="!summaryLoading; else loadingBlock">
+          <ng-container *ngIf="!summaryLoading; else loadingBlock">
             {{ summary()?.lowStockItems?.length ?? 0 }}
-          </span>
+          </ng-container>
         </p>
       </div>
     </div>
 
     <ng-template #loadingBlock>
-      <span class="inline-block h-6 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700"></span>
+      <span class="inline-block h-6 w-24 animate-pulse rounded bg-gray-200 dark:bg-gray-700"
+            role="status" aria-label="Loading"></span>
     </ng-template>
 
-    <p *ngIf="summaryError" class="text-sm text-red-600 dark:text-red-400">{{ summaryError }}</p>
+    <!-- Error + retry -->
+    <div *ngIf="summaryError"
+         role="alert"
+         class="flex items-center justify-between rounded-lg border border-red-300 bg-red-50 p-3 dark:border-red-600 dark:bg-red-900/30">
+      <span class="text-sm text-red-800 dark:text-red-200">{{ summaryError }}</span>
+      <button type="button"
+              (click)="loadSummary()"
+              [disabled]="summaryLoading"
+              class="rounded-lg border border-red-600 px-3 py-1 text-xs font-medium text-red-700 hover:bg-red-100 disabled:opacity-50 dark:border-red-400 dark:text-red-200 dark:hover:bg-red-900/50">
+        Retry
+      </button>
+    </div>
 
     <!-- Two-column: profile + password -->
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -120,99 +121,123 @@
         <dl class="space-y-3">
           <div class="flex justify-between border-b border-gray-100 pb-2 dark:border-gray-700">
             <dt class="text-sm text-gray-500 dark:text-gray-400">Full Name</dt>
-            <dd class="text-sm font-medium text-gray-900 dark:text-white">{{ user()?.fullName }}</dd>
+            <dd class="text-sm font-medium text-gray-900 dark:text-white">{{ user()?.fullName || '—' }}</dd>
           </div>
           <div class="flex justify-between border-b border-gray-100 pb-2 dark:border-gray-700">
             <dt class="text-sm text-gray-500 dark:text-gray-400">Username</dt>
-            <dd class="text-sm font-medium text-gray-900 dark:text-white">{{ user()?.username }}</dd>
+            <dd class="text-sm font-medium text-gray-900 dark:text-white">{{ user()?.username || '—' }}</dd>
           </div>
           <div class="flex justify-between border-b border-gray-100 pb-2 dark:border-gray-700">
             <dt class="text-sm text-gray-500 dark:text-gray-400">Role</dt>
             <dd>
               <span class="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                {{ user()?.role }}
+                {{ user()?.role || '—' }}
               </span>
             </dd>
           </div>
           <div class="flex justify-between">
             <dt class="text-sm text-gray-500 dark:text-gray-400">User ID</dt>
-            <dd class="text-sm font-medium text-gray-900 dark:text-white">#{{ user()?.userID }}</dd>
+            <dd class="text-sm font-medium text-gray-900 dark:text-white">#{{ user()?.userID ?? '—' }}</dd>
           </div>
         </dl>
       </div>
 
       <!-- Change password -->
-      <!-- Change password -->
-<div class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
-  <h2 class="mb-4 text-xl font-semibold text-gray-900 dark:text-white">Change Password</h2>
+      <div class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
+        <h2 class="mb-4 text-xl font-semibold text-gray-900 dark:text-white">Change Password</h2>
 
-  <div class="space-y-4">
+        <form (ngSubmit)="changePassword()" class="space-y-4" autocomplete="off" novalidate>
 
-    <!-- New Password -->
-    <div>
-      <label class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">
-        New Password
-      </label>
-      <input
-        [(ngModel)]="newPassword"
-        type="password"
-        placeholder="••••••••"
-        class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
-    </div>
+          <!-- New Password -->
+          <div>
+            <label for="newPassword"
+                   class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">
+              New Password
+            </label>
+            <div class="relative">
+              <input id="newPassword"
+                     name="newPassword"
+                     [(ngModel)]="newPassword"
+                     [type]="showNewPassword ? 'text' : 'password'"
+                     placeholder="••••••••"
+                     autocomplete="new-password"
+                     [minlength]="6"
+                     required
+                     class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 pr-10 text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
+              <button type="button"
+                      (click)="showNewPassword = !showNewPassword"
+                      [attr.aria-label]="showNewPassword ? 'Hide password' : 'Show password'"
+                      class="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                {{ showNewPassword ? 'Hide' : 'Show' }}
+              </button>
+            </div>
+            <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Minimum 6 characters.
+            </p>
+          </div>
 
-    <!-- Confirm Password -->
-    <div>
-      <label class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">
-        Confirm Password
-      </label>
-      <input
-        [(ngModel)]="confirmPassword"
-        type="password"
-        placeholder="••••••••"
-        class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
-    </div>
+          <!-- Confirm Password -->
+          <div>
+            <label for="confirmPassword"
+                   class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">
+              Confirm Password
+            </label>
+            <div class="relative">
+              <input id="confirmPassword"
+                     name="confirmPassword"
+                     [(ngModel)]="confirmPassword"
+                     [type]="showConfirmPassword ? 'text' : 'password'"
+                     placeholder="••••••••"
+                     autocomplete="new-password"
+                     required
+                     class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 pr-10 text-gray-900 focus:border-blue-500 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
+              <button type="button"
+                      (click)="showConfirmPassword = !showConfirmPassword"
+                      [attr.aria-label]="showConfirmPassword ? 'Hide password' : 'Show password'"
+                      class="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                {{ showConfirmPassword ? 'Hide' : 'Show' }}
+              </button>
+            </div>
+          </div>
 
-    <!-- Button -->
-    <button
-      (click)="changePassword()"
-      [disabled]="pwLoading || !newPassword || !confirmPassword"
-      class="inline-flex items-center gap-2 rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 disabled:opacity-50 dark:bg-blue-600 dark:hover:bg-blue-700">
+          <!-- Submit -->
+          <button type="submit"
+                  [disabled]="pwLoading || !newPassword || !confirmPassword"
+                  [attr.aria-busy]="pwLoading"
+                  class="inline-flex items-center gap-2 rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-blue-600 dark:hover:bg-blue-700">
+            <svg *ngIf="pwLoading"
+                 class="h-4 w-4 animate-spin"
+                 viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" opacity="0.25"/>
+              <path d="M22 12a10 10 0 0 0-10-10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+            </svg>
+            <span>{{ pwLoading ? 'Updating…' : 'Update Password' }}</span>
+          </button>
 
-      <!-- Spinner while loading -->
-      <svg *ngIf="pwLoading"
-           class="h-4 w-4 animate-spin"
-           viewBox="0 0 24 24" fill="none">
-        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" opacity="0.25"/>
-        <path d="M22 12a10 10 0 0 0-10-10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-      </svg>
+          <!-- Result message -->
+          <div *ngIf="pwMessage"
+               role="alert"
+               class="rounded-lg border p-3 text-sm"
+               [class.border-green-300]="pwSuccess"
+               [class.bg-green-50]="pwSuccess"
+               [class.text-green-800]="pwSuccess"
+               [class.dark:border-green-600]="pwSuccess"
+               [class.dark:bg-green-900/40]="pwSuccess"
+               [class.dark:text-green-200]="pwSuccess"
+               [class.border-red-300]="!pwSuccess"
+               [class.bg-red-50]="!pwSuccess"
+               [class.text-red-800]="!pwSuccess"
+               [class.dark:border-red-600]="!pwSuccess"
+               [class.dark:bg-red-900/40]="!pwSuccess"
+               [class.dark:text-red-200]="!pwSuccess">
+            <div class="flex items-start gap-2">
+              <span class="mt-0.5" aria-hidden="true">{{ pwSuccess ? '✓' : '⚠' }}</span>
+              <span>{{ pwMessage }}</span>
+            </div>
+          </div>
 
-      <span>{{ pwLoading ? 'Updating...' : 'Update Password' }}</span>
-    </button>
-
-    <!-- Message — always visible when set -->
-    <div *ngIf="pwMessage"
-         role="alert"
-         class="rounded-lg border p-3 text-sm"
-         [class.border-green-300]="pwSuccess"
-         [class.bg-green-50]="pwSuccess"
-         [class.text-green-800]="pwSuccess"
-         [class.dark:border-green-600]="pwSuccess"
-         [class.dark:bg-green-900/40]="pwSuccess"
-         [class.dark:text-green-200]="pwSuccess"
-         [class.border-red-300]="!pwSuccess"
-         [class.bg-red-50]="!pwSuccess"
-         [class.text-red-800]="!pwSuccess"
-         [class.dark:border-red-600]="!pwSuccess"
-         [class.dark:bg-red-900/40]="!pwSuccess"
-         [class.dark:text-red-200]="!pwSuccess">
-      <div class="flex items-start gap-2">
-        <span class="mt-0.5">{{ pwSuccess ? '✓' : '⚠' }}</span>
-        <span>{{ pwMessage }}</span>
+        </form>
       </div>
-    </div>
-
-  </div>
-</div>
     </div>
 
     <!-- Alerts: expiring / low stock -->
@@ -226,21 +251,23 @@
             {{ summary()?.expiringBatches?.length ?? 0 }}
           </span>
         </div>
-        <ul class="space-y-2 max-h-64 overflow-y-auto">
-          <li *ngFor="let b of summary()?.expiringBatches"
+        <ul class="max-h-64 space-y-2 overflow-y-auto">
+          <li *ngFor="let b of summary()?.expiringBatches; trackBy: trackByBatch"
               class="flex items-center justify-between rounded border border-gray-100 p-2 text-sm dark:border-gray-700">
-            <div>
-              <div class="font-medium text-gray-900 dark:text-white">{{ b.itemName }}</div>
+            <div class="min-w-0">
+              <div class="truncate font-medium text-gray-900 dark:text-white">{{ b.itemName }}</div>
               <div class="text-xs text-gray-500 dark:text-gray-400">
                 Batch {{ b.batchNo }} · Qty {{ b.qtyBalance }}
               </div>
             </div>
-            <span class="text-xs font-medium text-orange-600 dark:text-orange-400">
+            <span class="shrink-0 text-xs font-medium text-orange-600 dark:text-orange-400">
               {{ b.expiryDate }}
             </span>
           </li>
           <li *ngIf="!summary()?.expiringBatches?.length"
-              class="text-sm text-gray-500 dark:text-gray-400">No expiring batches.</li>
+              class="text-sm text-gray-500 dark:text-gray-400">
+            No expiring batches.
+          </li>
         </ul>
       </div>
 
@@ -252,21 +279,23 @@
             {{ summary()?.lowStockItems?.length ?? 0 }}
           </span>
         </div>
-        <ul class="space-y-2 max-h-64 overflow-y-auto">
-          <li *ngFor="let i of summary()?.lowStockItems"
+        <ul class="max-h-64 space-y-2 overflow-y-auto">
+          <li *ngFor="let i of summary()?.lowStockItems; trackBy: trackByProduct"
               class="flex items-center justify-between rounded border border-gray-100 p-2 text-sm dark:border-gray-700">
-            <div>
-              <div class="font-medium text-gray-900 dark:text-white">{{ i.itemName }}</div>
+            <div class="min-w-0">
+              <div class="truncate font-medium text-gray-900 dark:text-white">{{ i.itemName }}</div>
               <div class="text-xs text-gray-500 dark:text-gray-400">
                 Reorder level: {{ i.reorderLevel }}
               </div>
             </div>
-            <span class="text-xs font-medium text-red-600 dark:text-red-400">
+            <span class="shrink-0 text-xs font-medium text-red-600 dark:text-red-400">
               {{ i.currentStock }} left
             </span>
           </li>
           <li *ngIf="!summary()?.lowStockItems?.length"
-              class="text-sm text-gray-500 dark:text-gray-400">All items are sufficiently stocked.</li>
+              class="text-sm text-gray-500 dark:text-gray-400">
+            All items are sufficiently stocked.
+          </li>
         </ul>
       </div>
     </div>

@@ -1,15 +1,16 @@
-<div class="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-6">
   <div class="mx-auto max-w-6xl space-y-4">
 
     <!-- Header -->
-    <div class="flex items-center justify-between">
+    <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
       <div>
         <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Vendor Purchase History</h1>
-        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
           Search past purchases by vendor, purchase no, or date. Export for audit / ITR.
         </p>
       </div>
-      <a routerLink="/dashboard" class="text-sm text-blue-600 hover:underline dark:text-blue-400">← Dashboard</a>
+      <a routerLink="/dashboard"
+         class="text-sm text-blue-600 hover:underline dark:text-blue-400">← Dashboard</a>
     </div>
 
     <!-- Filters -->
@@ -17,19 +18,29 @@
       <div class="grid grid-cols-1 gap-3 sm:grid-cols-4">
 
         <div class="relative sm:col-span-2">
-          <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
+          <label for="search"
+                 class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">
             Search (vendor name, purchase no, bill no)
           </label>
-          <input [(ngModel)]="q"
+          <input id="search"
+                 [(ngModel)]="q"
                  (input)="onSearchInput()"
                  (blur)="hideSuggestionsLater()"
-                 placeholder="Start typing vendor name..."
+                 (keydown.escape)="showSuggestions = false"
+                 placeholder="Start typing vendor name…"
+                 autocomplete="off"
+                 role="combobox"
+                 [attr.aria-expanded]="showSuggestions && suggestions.length > 0"
+                 aria-controls="vendor-suggestions"
                  class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
 
           <ul *ngIf="showSuggestions && suggestions.length"
+              id="vendor-suggestions"
+              role="listbox"
               class="absolute z-20 mt-1 max-h-64 w-full overflow-y-auto rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-600 dark:bg-gray-800">
-            <li *ngFor="let s of suggestions"
+            <li *ngFor="let s of suggestions; trackBy: trackByVendorSuggestion"
                 (mousedown)="pickSuggestion(s)"
+                role="option"
                 class="cursor-pointer px-3 py-2 text-sm hover:bg-blue-50 dark:hover:bg-gray-700">
               <div class="font-medium text-gray-900 dark:text-white">{{ s.fullName }}</div>
               <div class="text-xs text-gray-500 dark:text-gray-400">
@@ -40,39 +51,65 @@
         </div>
 
         <div>
-          <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">From</label>
-          <input [(ngModel)]="from" type="date" (change)="onDateChange()"
+          <label for="from"
+                 class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">From</label>
+          <input id="from"
+                 [(ngModel)]="from"
+                 type="date"
+                 [max]="to || null"
+                 (change)="onDateChange()"
                  class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
         </div>
 
         <div>
-          <label class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">To</label>
-          <input [(ngModel)]="to" type="date" (change)="onDateChange()"
+          <label for="to"
+                 class="mb-1 block text-xs font-medium text-gray-600 dark:text-gray-400">To</label>
+          <input id="to"
+                 [(ngModel)]="to"
+                 type="date"
+                 [min]="from || null"
+                 (change)="onDateChange()"
                  class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
         </div>
       </div>
 
       <div class="mt-3 flex flex-wrap items-center gap-2">
-        <button (click)="clear()"
-                class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
+        <button type="button" (click)="clear()"
+                [disabled]="loading || exporting"
+                class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
           Reset
         </button>
-        <button (click)="exportCsv()" [disabled]="exporting || purchases.length === 0"
-                class="rounded-lg bg-green-700 px-4 py-2 text-sm font-medium text-white hover:bg-green-800 disabled:opacity-50 dark:bg-green-600">
+        <button type="button" (click)="exportCsv()"
+                [disabled]="!canExportDetail"
+                class="rounded-lg bg-green-700 px-4 py-2 text-sm font-medium text-white hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-green-600">
           ⬇ Export CSV
         </button>
-        <button (click)="exportPdf()" [disabled]="exporting || purchases.length === 0"
-                class="rounded-lg bg-red-700 px-4 py-2 text-sm font-medium text-white hover:bg-red-800 disabled:opacity-50 dark:bg-red-600">
+        <button type="button" (click)="exportPdf()"
+                [disabled]="!canExportDetail"
+                class="rounded-lg bg-red-700 px-4 py-2 text-sm font-medium text-white hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-red-600">
           ⬇ Export PDF
         </button>
-        <span *ngIf="loading" class="text-sm text-gray-500 dark:text-gray-400">Searching...</span>
-        <span *ngIf="error" class="text-sm text-red-600 dark:text-red-400">{{ error }}</span>
+        <span *ngIf="loading" role="status" class="text-sm text-gray-500 dark:text-gray-400">
+          Searching…
+        </span>
+      </div>
+
+      <div *ngIf="error" role="alert"
+           class="mt-3 flex items-center justify-between rounded-lg border border-red-300 bg-red-50 p-3 dark:border-red-600 dark:bg-red-900/30">
+        <span class="text-sm text-red-800 dark:text-red-200">{{ error }}</span>
+        <button type="button" (click)="reload()"
+                [disabled]="loading"
+                class="rounded-lg border border-red-600 px-3 py-1 text-xs font-medium text-red-700 hover:bg-red-100 disabled:opacity-50 dark:border-red-400 dark:text-red-200 dark:hover:bg-red-900/50">
+          Retry
+        </button>
       </div>
     </div>
 
     <!-- View mode toggle -->
-    <div class="flex items-center gap-2">
-      <button (click)="switchView('detail')"
+    <div class="flex items-center gap-2" role="tablist" aria-label="View mode">
+      <button type="button" (click)="switchView('detail')"
+              role="tab"
+              [attr.aria-selected]="viewMode === 'detail'"
               [class.bg-blue-700]="viewMode === 'detail'"
               [class.text-white]="viewMode === 'detail'"
               [class.bg-white]="viewMode !== 'detail'"
@@ -80,7 +117,9 @@
               class="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
         Detail View
       </button>
-      <button (click)="switchView('summary')"
+      <button type="button" (click)="switchView('summary')"
+              role="tab"
+              [attr.aria-selected]="viewMode === 'summary'"
               [class.bg-blue-700]="viewMode === 'summary'"
               [class.text-white]="viewMode === 'summary'"
               [class.bg-white]="viewMode !== 'summary'"
@@ -90,12 +129,9 @@
       </button>
     </div>
 
-    <!-- ============================================================== -->
-    <!-- DETAIL VIEW (existing content, wrapped in *ngIf)                -->
-    <!-- ============================================================== -->
+    <!-- ======================= DETAIL VIEW ======================= -->
     <ng-container *ngIf="viewMode === 'detail'">
 
-      <!-- Summary cards -->
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-4">
         <div class="rounded-lg bg-white p-4 shadow dark:bg-gray-800">
           <p class="text-xs text-gray-500 dark:text-gray-400">Purchases Found</p>
@@ -115,7 +151,6 @@
         </div>
       </div>
 
-      <!-- Detail table -->
       <div class="rounded-lg bg-white p-4 shadow dark:bg-gray-800">
         <div class="overflow-x-auto">
           <table class="w-full text-sm">
@@ -132,7 +167,8 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let p of purchases" class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700/40">
+              <tr *ngFor="let p of purchases; trackBy: trackByPurchase"
+                  class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700/40">
                 <td class="py-2 font-mono text-xs">{{ p.purchaseNo }}</td>
                 <td class="py-2">{{ p.purchaseDate }}</td>
                 <td class="py-2">{{ p.vendorName || ('Vendor #' + p.vendorID) }}</td>
@@ -156,25 +192,26 @@
 
     </ng-container>
 
-    <!-- ============================================================== -->
-    <!-- VENDOR SUMMARY VIEW                                             -->
-    <!-- ============================================================== -->
+    <!-- ======================= SUMMARY VIEW ======================= -->
     <ng-container *ngIf="viewMode === 'summary'">
 
-      <!-- Export buttons -->
       <div class="flex flex-wrap gap-2">
-        <button (click)="exportSummaryCsv()" [disabled]="exporting || summary.length === 0"
-                class="rounded-lg bg-green-700 px-4 py-2 text-sm font-medium text-white hover:bg-green-800 disabled:opacity-50 dark:bg-green-600">
+        <button type="button" (click)="exportSummaryCsv()"
+                [disabled]="!canExportSummary"
+                class="rounded-lg bg-green-700 px-4 py-2 text-sm font-medium text-white hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-green-600">
           ⬇ Export Summary CSV
         </button>
-        <button (click)="exportSummaryPdf()" [disabled]="exporting || summary.length === 0"
-                class="rounded-lg bg-red-700 px-4 py-2 text-sm font-medium text-white hover:bg-red-800 disabled:opacity-50 dark:bg-red-600">
+        <button type="button" (click)="exportSummaryPdf()"
+                [disabled]="!canExportSummary"
+                class="rounded-lg bg-red-700 px-4 py-2 text-sm font-medium text-white hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-red-600">
           ⬇ Export Summary PDF
         </button>
-        <span *ngIf="summaryLoading" class="text-sm text-gray-500 dark:text-gray-400">Loading summary...</span>
+        <span *ngIf="summaryLoading" role="status"
+              class="text-sm text-gray-500 dark:text-gray-400">
+          Loading summary…
+        </span>
       </div>
 
-      <!-- Summary cards -->
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div class="rounded-lg bg-white p-4 shadow dark:bg-gray-800">
           <p class="text-xs text-gray-500 dark:text-gray-400">Vendors</p>
@@ -190,7 +227,6 @@
         </div>
       </div>
 
-      <!-- Summary table -->
       <div class="rounded-lg bg-white p-4 shadow dark:bg-gray-800">
         <div class="overflow-x-auto">
           <table class="w-full text-sm">
@@ -209,29 +245,34 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let r of summary; let i = index" class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700/40">
+              <tr *ngFor="let r of summary; let i = index; trackBy: trackByVendorSummary"
+                  class="border-b border-gray-100 hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-700/40">
                 <td class="py-2">{{ i + 1 }}</td>
-                <td class="py-2 font-medium">{{ r.vendorName }}</td>
+                <td class="py-2 font-medium">{{ r.vendorName || ('Vendor #' + r.vendorID) }}</td>
                 <td class="py-2 font-mono text-xs">{{ r.gstin || '—' }}</td>
-                <td class="py-2 text-right">{{ r.purchaseCount }}</td>
-                <td class="py-2 text-right font-mono">₹ {{ r.subTotal | number:'1.2-2' }}</td>
-                <td class="py-2 text-right font-mono">₹ {{ r.cgst | number:'1.2-2' }}</td>
-                <td class="py-2 text-right font-mono">₹ {{ r.sgst | number:'1.2-2' }}</td>
-                <td class="py-2 text-right font-mono">₹ {{ r.igst | number:'1.2-2' }}</td>
-                <td class="py-2 text-right font-mono text-green-700 dark:text-green-400">₹ {{ r.totalTax | number:'1.2-2' }}</td>
-                <td class="py-2 text-right font-mono font-medium">₹ {{ r.grandTotal | number:'1.2-2' }}</td>
+                <td class="py-2 text-right">{{ r.purchaseCount ?? 0 }}</td>
+                <td class="py-2 text-right font-mono">₹ {{ r.subTotal ?? 0 | number:'1.2-2' }}</td>
+                <td class="py-2 text-right font-mono">₹ {{ r.cgst ?? 0 | number:'1.2-2' }}</td>
+                <td class="py-2 text-right font-mono">₹ {{ r.sgst ?? 0 | number:'1.2-2' }}</td>
+                <td class="py-2 text-right font-mono">₹ {{ r.igst ?? 0 | number:'1.2-2' }}</td>
+                <td class="py-2 text-right font-mono text-green-700 dark:text-green-400">
+                  ₹ {{ r.totalTax ?? 0 | number:'1.2-2' }}
+                </td>
+                <td class="py-2 text-right font-mono font-medium">₹ {{ r.grandTotal ?? 0 | number:'1.2-2' }}</td>
               </tr>
               <tr *ngIf="!summaryLoading && summary.length === 0">
                 <td colspan="10" class="py-8 text-center text-gray-500 dark:text-gray-400">
                   No vendor purchases in the selected period.
                 </td>
               </tr>
-              <!-- Totals row -->
-              <tr *ngIf="summary.length > 0" class="border-t-2 border-gray-300 bg-gray-50 dark:border-gray-600 dark:bg-gray-700/50">
-                <td colspan="4" class="py-2 px-2 font-bold text-gray-900 dark:text-white">Totals</td>
+              <tr *ngIf="summary.length > 0"
+                  class="border-t-2 border-gray-300 bg-gray-50 dark:border-gray-600 dark:bg-gray-700/50">
+                <td colspan="4" class="px-2 py-2 font-bold text-gray-900 dark:text-white">Totals</td>
                 <td class="py-2 text-right font-mono font-bold">₹ {{ summaryTotalTaxable | number:'1.2-2' }}</td>
                 <td colspan="3"></td>
-                <td class="py-2 text-right font-mono font-bold text-green-700 dark:text-green-400">₹ {{ summaryTotalITC | number:'1.2-2' }}</td>
+                <td class="py-2 text-right font-mono font-bold text-green-700 dark:text-green-400">
+                  ₹ {{ summaryTotalITC | number:'1.2-2' }}
+                </td>
                 <td class="py-2 text-right font-mono font-bold">₹ {{ summaryGrandTotal | number:'1.2-2' }}</td>
               </tr>
             </tbody>

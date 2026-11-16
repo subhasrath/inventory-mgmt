@@ -1,16 +1,16 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './guards/auth-guard';
-import { Signup } from './pages/signup/signup';
-import { Login } from './pages/login/login';
-import { ForgotPassword } from './pages/forgot-password/forgot-password';
+import { Signup } from './pages/user/signup/signup';
+import { Login } from './pages/user/login/login';
+import { ForgotPassword } from './pages/user/forgot-password/forgot-password';
 import { Dashboard } from './pages/dashboard/dashboard';
-import { Company } from './pages/company/company';
-import { Purchase } from './pages/purchase/purchase';
-import { Vendors } from './pages/vendors/vendors';
-import { Items } from './pages/items/items';
+import { Company } from './pages/user/company/company';
+import { Purchase } from './pages/itemsEntry/purchase/purchase';
+import { Vendors } from './pages/itemsEntry/vendors/vendors';
+import { Items } from './pages/itemsEntry/items/items';
 import { Billing } from './pages/billing/billing';
-import { SalesHistory } from './pages/sales-history/sales-history';
-import { PurchaseHistory } from './pages/purchase-history/purchase-history';
+import { SalesHistory } from './pages/historyCheck/sales-history/sales-history';
+import { PurchaseHistory } from './pages/historyCheck/purchase-history/purchase-history';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },

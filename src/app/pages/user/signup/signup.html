@@ -1,0 +1,141 @@
+<div class="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
+  <div class="w-full max-w-md space-y-6 rounded-lg bg-white p-8 shadow dark:bg-gray-800">
+    <div>
+      <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Create Admin Account</h2>
+      <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">First user becomes the administrator.</p>
+    </div>
+
+    <form #signupForm="ngForm" (ngSubmit)="doSignup()" novalidate class="space-y-6">
+
+      <!-- Full Name -->
+      <div>
+        <label for="signup-fullname" class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">
+          Full Name
+        </label>
+        <input
+          id="signup-fullname"
+          name="fullName"
+          [(ngModel)]="fullName"
+          type="text"
+          autocomplete="name"
+          required
+          [disabled]="loading"
+          class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-900 focus:border-blue-500 focus:ring-blue-500 disabled:opacity-60 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+          placeholder="Subhas" />
+      </div>
+
+      <!-- Username -->
+      <div>
+        <label for="signup-username" class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">
+          Username
+        </label>
+        <input
+          id="signup-username"
+          name="username"
+          [(ngModel)]="username"
+          type="text"
+          autocomplete="username"
+          autocapitalize="none"
+          autocorrect="off"
+          spellcheck="false"
+          required
+          [disabled]="loading"
+          class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 text-gray-900 focus:border-blue-500 focus:ring-blue-500 disabled:opacity-60 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+          placeholder="subhas" />
+      </div>
+
+      <!-- Password -->
+      <div>
+        <label for="signup-password" class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">
+          Password
+        </label>
+        <div class="relative">
+          <input
+            id="signup-password"
+            name="password"
+            [(ngModel)]="password"
+            [type]="showPassword ? 'text' : 'password'"
+            autocomplete="new-password"
+            required
+            minlength="8"
+            [disabled]="loading"
+            aria-describedby="signup-password-hint"
+            (focus)="selectAll($event)"
+            class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 pr-12 text-gray-900 focus:border-blue-500 focus:ring-blue-500 disabled:opacity-60 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+            placeholder="••••••••" />
+          <button
+            type="button"
+            (click)="togglePassword()"
+            [disabled]="loading"
+            [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+            [attr.aria-pressed]="showPassword"
+            class="absolute inset-y-0 right-0 flex items-center px-3 text-xs font-medium text-gray-500 hover:text-gray-700 disabled:opacity-50 dark:text-gray-400 dark:hover:text-gray-200">
+            {{ showPassword ? 'Hide' : 'Show' }}
+          </button>
+        </div>
+        <p id="signup-password-hint" class="mt-1 text-xs text-gray-500 dark:text-gray-400">
+          Minimum 8 characters.
+        </p>
+      </div>
+
+      <!-- Confirm Password -->
+      <div>
+        <label for="signup-confirm" class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">
+          Confirm Password
+        </label>
+        <div class="relative">
+          <input
+            id="signup-confirm"
+            name="confirmPassword"
+            [(ngModel)]="confirmPassword"
+            [type]="showConfirmPassword ? 'text' : 'password'"
+            autocomplete="new-password"
+            required
+            [disabled]="loading"
+            (focus)="selectAll($event)"
+            [attr.aria-invalid]="passwordMismatch"
+            [attr.aria-describedby]="passwordMismatch ? 'signup-mismatch' : null"
+            class="block w-full rounded-lg border p-2.5 pr-12 bg-gray-50 text-gray-900 focus:border-blue-500 focus:ring-blue-500 disabled:opacity-60 dark:bg-gray-700 dark:text-white"
+            [class.border-red-500]="passwordMismatch"
+            [class.border-gray-300]="!passwordMismatch"
+            [class.dark:border-gray-600]="!passwordMismatch"
+            placeholder="••••••••" />
+          <button
+            type="button"
+            (click)="toggleConfirmPassword()"
+            [disabled]="loading"
+            [attr.aria-label]="showConfirmPassword ? 'Hide password' : 'Show password'"
+            [attr.aria-pressed]="showConfirmPassword"
+            class="absolute inset-y-0 right-0 flex items-center px-3 text-xs font-medium text-gray-500 hover:text-gray-700 disabled:opacity-50 dark:text-gray-400 dark:hover:text-gray-200">
+            {{ showConfirmPassword ? 'Hide' : 'Show' }}
+          </button>
+        </div>
+        <p *ngIf="passwordMismatch" id="signup-mismatch" class="mt-1 text-xs text-red-600 dark:text-red-400">
+          Passwords do not match.
+        </p>
+      </div>
+
+      <!-- Error -->
+      <p
+        *ngIf="error"
+        role="alert"
+        aria-live="assertive"
+        class="text-sm text-red-600 dark:text-red-400">
+        {{ error }}
+      </p>
+
+      <!-- Submit -->
+      <button
+        type="submit"
+        [disabled]="!canSubmit"
+        class="w-full rounded-lg bg-blue-700 px-5 py-2.5 text-center text-sm font-medium text-white hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-blue-600 dark:hover:bg-blue-700">
+        {{ loading ? 'Creating…' : 'Create Account' }}
+      </button>
+    </form>
+
+    <p class="text-sm text-gray-500 dark:text-gray-400">
+      Already have an account?
+      <a routerLink="/login" class="text-blue-600 hover:underline dark:text-blue-500">Sign in</a>
+    </p>
+  </div>
+</div>

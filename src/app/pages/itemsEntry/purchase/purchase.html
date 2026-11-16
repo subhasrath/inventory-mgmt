@@ -1,0 +1,267 @@
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 sm:p-6">
+  <div class="mx-auto max-w-6xl space-y-4">
+
+    <!-- Header -->
+    <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">New Purchase</h1>
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+          Record a vendor purchase and create batches in one step.
+        </p>
+      </div>
+      <a routerLink="/dashboard"
+         class="text-sm text-blue-600 hover:underline dark:text-blue-400">← Dashboard</a>
+    </div>
+
+    <!-- Lookups error -->
+    <div *ngIf="lookupsError"
+         role="alert"
+         class="flex items-center justify-between rounded-lg border border-red-300 bg-red-50 p-3 dark:border-red-600 dark:bg-red-900/30">
+      <span class="text-sm text-red-800 dark:text-red-200">{{ lookupsError }}</span>
+      <button type="button"
+              (click)="loadLookups()"
+              [disabled]="lookupsLoading"
+              class="rounded-lg border border-red-600 px-3 py-1 text-xs font-medium text-red-700 hover:bg-red-100 disabled:opacity-50 dark:border-red-400 dark:text-red-200 dark:hover:bg-red-900/50">
+        Retry
+      </button>
+    </div>
+
+    <!-- Header form -->
+    <div class="rounded-lg bg-white p-4 shadow dark:bg-gray-800">
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div>
+          <label for="vendor"
+                 class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
+            Vendor <span class="text-red-500">*</span>
+          </label>
+          <select id="vendor"
+                  [(ngModel)]="vendorID"
+                  [disabled]="lookupsLoading"
+                  class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2 text-sm disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+            <option [ngValue]="null" disabled>
+              {{ lookupsLoading ? 'Loading vendors…' : 'Select vendor' }}
+            </option>
+            <option *ngFor="let v of vendors; trackBy: trackByVendor" [ngValue]="v.vendorID">
+              {{ v.fullName }}
+            </option>
+          </select>
+        </div>
+
+        <div>
+          <label for="vendorBillNo"
+                 class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
+            Vendor Bill No
+          </label>
+          <input id="vendorBillNo"
+                 [(ngModel)]="vendorBillNo"
+                 maxlength="60"
+                 autocomplete="off"
+                 placeholder="Optional"
+                 class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
+        </div>
+
+        <div>
+          <label for="purchaseDate"
+                 class="mb-1 block text-xs font-medium text-gray-700 dark:text-gray-300">
+            Purchase Date <span class="text-red-500">*</span>
+          </label>
+          <input id="purchaseDate"
+                 [(ngModel)]="purchaseDate"
+                 type="date"
+                 [max]="purchaseDate"
+                 required
+                 class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2 text-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Lines -->
+    <div class="rounded-lg bg-white p-4 shadow dark:bg-gray-800">
+      <div class="mb-3 flex items-center justify-between">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Items</h2>
+        <button type="button"
+                (click)="addLine()"
+                [disabled]="saving"
+                class="rounded-lg bg-blue-700 px-3 py-1.5 text-sm font-medium text-white hover:bg-blue-800 disabled:opacity-50 dark:bg-blue-600">
+          + Add Line
+        </button>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="border-b border-gray-200 dark:border-gray-700">
+            <tr class="text-left text-xs font-medium text-gray-500 dark:text-gray-400">
+              <th class="pb-2">Item</th>
+              <th class="pb-2">Batch</th>
+              <th class="pb-2">Expiry</th>
+              <th class="pb-2 text-right">Qty</th>
+              <th class="pb-2 text-right">Rate</th>
+              <th class="pb-2 text-right">MRP</th>
+              <th class="pb-2 text-right">GST%</th>
+              <th class="pb-2 text-right">Tax</th>
+              <th class="pb-2 text-right">Total</th>
+              <th class="pb-2"><span class="sr-only">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let l of lines; let i = index; trackBy: trackByLine"
+                class="border-b border-gray-100 dark:border-gray-700">
+              <td class="py-2">
+                <select [(ngModel)]="l.productID"
+                        (ngModelChange)="onItemChange(i)"
+                        [disabled]="saving || lookupsLoading"
+                        [attr.aria-label]="'Item for line ' + (i + 1)"
+                        class="w-48 rounded border border-gray-300 bg-white p-1 text-sm disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                  <option [ngValue]="null" disabled>— Select —</option>
+                  <option *ngFor="let it of items; trackBy: trackByItem" [ngValue]="it.productID">
+                    {{ it.itemName }}
+                  </option>
+                </select>
+                <div *ngIf="l.itemName" class="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
+                  {{ l.itemName }}
+                </div>
+              </td>
+              <td class="py-2">
+                <input [(ngModel)]="l.batchNo"
+                       [disabled]="saving"
+                       maxlength="40"
+                       autocomplete="off"
+                       [attr.aria-label]="'Batch number for line ' + (i + 1)"
+                       class="w-28 rounded border border-gray-300 bg-white p-1 text-sm disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
+              </td>
+              <td class="py-2">
+                <input [(ngModel)]="l.expiryDate"
+                       type="date"
+                       [disabled]="saving"
+                       [attr.aria-label]="'Expiry date for line ' + (i + 1)"
+                       class="w-32 rounded border border-gray-300 bg-white p-1 text-sm disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
+              </td>
+              <td class="py-2 text-right">
+                <input type="number"
+                       min="1"
+                       step="1"
+                       [ngModel]="l.quantity"
+                       (ngModelChange)="onLineQtyChange(i, $event)"
+                       [disabled]="saving"
+                       [attr.aria-label]="'Quantity for line ' + (i + 1)"
+                       class="w-16 rounded border border-gray-300 bg-white p-1 text-right text-sm disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
+              </td>
+              <td class="py-2 text-right">
+                <input type="number"
+                       min="0"
+                       step="0.01"
+                       [ngModel]="l.purchaseRate"
+                       (ngModelChange)="onLineRateChange(i, $event)"
+                       [disabled]="saving"
+                       [attr.aria-label]="'Purchase rate for line ' + (i + 1)"
+                       class="w-20 rounded border border-gray-300 bg-white p-1 text-right text-sm disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
+              </td>
+              <td class="py-2 text-right">
+                <input type="number"
+                       min="0"
+                       step="0.01"
+                       [ngModel]="l.mrp"
+                       (ngModelChange)="onLineMrpChange(i, $event)"
+                       [disabled]="saving"
+                       [attr.aria-label]="'MRP for line ' + (i + 1)"
+                       class="w-20 rounded border border-gray-300 bg-white p-1 text-right text-sm disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
+              </td>
+              <td class="py-2 text-right">
+                <select [(ngModel)]="l.gstRate"
+                        [disabled]="saving"
+                        [attr.aria-label]="'GST rate for line ' + (i + 1)"
+                        class="w-16 rounded border border-gray-300 bg-white p-1 text-sm disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-white">
+                  <option *ngFor="let r of gstRates" [ngValue]="r">{{ r }}%</option>
+                </select>
+              </td>
+              <td class="py-2 text-right font-mono">₹ {{ lineTax(l) | number:'1.2-2' }}</td>
+              <td class="py-2 text-right font-mono font-medium">₹ {{ lineTotal(l) | number:'1.2-2' }}</td>
+              <td class="py-2 text-right">
+                <button type="button"
+                        (click)="removeLine(i)"
+                        [disabled]="saving"
+                        [attr.aria-label]="'Remove line ' + (i + 1)"
+                        class="rounded p-1 text-red-600 hover:bg-red-50 disabled:opacity-50 dark:text-red-400 dark:hover:bg-red-900/30">
+                  ✕
+                </button>
+              </td>
+            </tr>
+            <tr *ngIf="lines.length === 0">
+              <td colspan="10" class="py-6 text-center text-gray-500 dark:text-gray-400">
+                No lines. Click "Add Line" to start.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Totals -->
+    <div class="flex justify-end">
+      <div class="w-full max-w-sm space-y-1 rounded-lg bg-white p-4 shadow dark:bg-gray-800">
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-600 dark:text-gray-400">Taxable</span>
+          <span class="font-mono">₹ {{ subTotal | number:'1.2-2' }}</span>
+        </div>
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-600 dark:text-gray-400">Tax</span>
+          <span class="font-mono">₹ {{ totalTax | number:'1.2-2' }}</span>
+        </div>
+        <div class="mt-2 flex justify-between border-t border-gray-300 pt-2 text-base font-semibold dark:border-gray-600">
+          <span>Grand Total</span>
+          <span class="font-mono">₹ {{ grandTotal | number:'1.2-2' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex flex-wrap items-center gap-3">
+      <button type="button"
+              (click)="save()"
+              [disabled]="!canSave"
+              [attr.aria-busy]="saving"
+              class="rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-blue-600 dark:hover:bg-blue-700">
+        {{ saving ? 'Saving…' : 'Save Purchase' }}
+      </button>
+      <button type="button"
+              (click)="reset()"
+              [disabled]="saving"
+              class="rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
+        Reset
+      </button>
+      <span *ngIf="message"
+            role="alert"
+            class="text-sm"
+            [class.text-green-600]="success"
+            [class.dark:text-green-400]="success"
+            [class.text-red-600]="!success"
+            [class.dark:text-red-400]="!success">
+        {{ message }}
+      </span>
+    </div>
+
+    <!-- Success panel -->
+    <div *ngIf="lastPurchase"
+         role="status"
+         class="rounded-lg border border-green-300 bg-green-50 p-4 dark:border-green-600 dark:bg-green-900/30">
+      <h3 class="text-lg font-semibold text-green-900 dark:text-green-200">
+        ✓ Purchase {{ lastPurchase.purchaseNo }} saved
+      </h3>
+      <p class="mt-1 text-sm text-green-800 dark:text-green-300">
+        Total ₹ {{ lastPurchase.grandTotal ?? grandTotal | number:'1.2-2' }} — ready for the next entry.
+      </p>
+      <div class="mt-3 flex flex-wrap gap-2">
+        <a routerLink="/purchase-history"
+           class="rounded-lg bg-green-700 px-4 py-2 text-sm font-medium text-white hover:bg-green-800 dark:bg-green-600 dark:hover:bg-green-700">
+          View Purchase History
+        </a>
+        <button type="button"
+                (click)="reset()"
+                class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
+          New Purchase
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>

@@ -1,0 +1,217 @@
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+  <div class="mx-auto max-w-3xl">
+
+    <div class="mb-6 flex items-center justify-between">
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Shop / Company Details</h1>
+      <a routerLink="/dashboard" class="text-sm text-blue-600 hover:underline dark:text-blue-400">
+        ← Back to dashboard
+      </a>
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="loading" class="rounded-lg bg-white p-6 shadow dark:bg-gray-800" role="status" aria-live="polite">
+      <p class="text-sm text-gray-500 dark:text-gray-400">Loading company details…</p>
+    </div>
+
+    <!-- Form -->
+    <form
+      *ngIf="!loading"
+      #companyForm="ngForm"
+      (ngSubmit)="save()"
+      novalidate
+      class="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
+
+      <p class="mb-6 text-sm text-gray-500 dark:text-gray-400">
+        These details appear on every GST invoice. Fields marked <span class="text-red-500">*</span> are required.
+      </p>
+
+      <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+
+        <!-- Shop Name -->
+        <div class="sm:col-span-2">
+          <label for="company-name" class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">
+            Shop Name <span class="text-red-500">*</span>
+          </label>
+          <input
+            id="company-name"
+            name="name"
+            [(ngModel)]="company.name"
+            required
+            autocomplete="organization"
+            [attr.aria-invalid]="fieldInvalid('name')"
+            [attr.aria-describedby]="fieldInvalid('name') ? 'err-name' : null"
+            class="block w-full rounded-lg border p-2.5 bg-gray-50 dark:bg-gray-700 dark:text-white"
+            [class.border-red-500]="fieldInvalid('name')"
+            [class.border-gray-300]="!fieldInvalid('name')"
+            [class.dark:border-gray-600]="!fieldInvalid('name')" />
+          <p *ngIf="fieldInvalid('name')" id="err-name" class="mt-1 text-xs text-red-600">{{ fieldErrors.name }}</p>
+        </div>
+
+        <!-- GSTIN -->
+        <div class="sm:col-span-2">
+          <label for="company-gstin" class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">
+            GSTIN <span class="text-red-500">*</span>
+          </label>
+          <input
+            id="company-gstin"
+            name="gstin"
+            [(ngModel)]="company.gstin"
+            required
+            placeholder="27ABCDE1234F1Z5"
+            maxlength="15"
+            autocapitalize="characters"
+            [attr.aria-invalid]="fieldInvalid('gstin')"
+            [attr.aria-describedby]="fieldInvalid('gstin') ? 'err-gstin' : null"
+            class="block w-full rounded-lg border p-2.5 uppercase bg-gray-50 dark:bg-gray-700 dark:text-white"
+            [class.border-red-500]="fieldInvalid('gstin')"
+            [class.border-gray-300]="!fieldInvalid('gstin')"
+            [class.dark:border-gray-600]="!fieldInvalid('gstin')" />
+          <p *ngIf="fieldInvalid('gstin')" id="err-gstin" class="mt-1 text-xs text-red-600">{{ fieldErrors.gstin }}</p>
+        </div>
+
+        <!-- Address -->
+        <div class="sm:col-span-2">
+          <label for="company-address" class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">Address</label>
+          <input
+            id="company-address"
+            name="address"
+            [(ngModel)]="company.address"
+            autocomplete="street-address"
+            class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
+        </div>
+
+        <!-- City -->
+        <div>
+          <label for="company-city" class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">City</label>
+          <input
+            id="company-city"
+            name="city"
+            [(ngModel)]="company.city"
+            autocomplete="address-level2"
+            class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
+        </div>
+
+        <!-- State -->
+        <div>
+          <label for="company-state" class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">
+            State <span class="text-red-500">*</span>
+          </label>
+          <input
+            id="company-state"
+            name="state"
+            [(ngModel)]="company.state"
+            required
+            placeholder="Maharashtra"
+            autocomplete="address-level1"
+            [attr.aria-invalid]="fieldInvalid('state')"
+            [attr.aria-describedby]="fieldInvalid('state') ? 'err-state' : null"
+            class="block w-full rounded-lg border p-2.5 bg-gray-50 dark:bg-gray-700 dark:text-white"
+            [class.border-red-500]="fieldInvalid('state')"
+            [class.border-gray-300]="!fieldInvalid('state')"
+            [class.dark:border-gray-600]="!fieldInvalid('state')" />
+          <p *ngIf="fieldInvalid('state')" id="err-state" class="mt-1 text-xs text-red-600">{{ fieldErrors.state }}</p>
+        </div>
+
+        <!-- Pincode -->
+        <div>
+          <label for="company-pincode" class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">Pincode</label>
+          <input
+            id="company-pincode"
+            name="pincode"
+            [(ngModel)]="company.pincode"
+            inputmode="numeric"
+            maxlength="6"
+            autocomplete="postal-code"
+            [attr.aria-invalid]="fieldInvalid('pincode')"
+            [attr.aria-describedby]="fieldInvalid('pincode') ? 'err-pincode' : null"
+            class="block w-full rounded-lg border p-2.5 bg-gray-50 dark:bg-gray-700 dark:text-white"
+            [class.border-red-500]="fieldInvalid('pincode')"
+            [class.border-gray-300]="!fieldInvalid('pincode')"
+            [class.dark:border-gray-600]="!fieldInvalid('pincode')" />
+          <p *ngIf="fieldInvalid('pincode')" id="err-pincode" class="mt-1 text-xs text-red-600">{{ fieldErrors.pincode }}</p>
+        </div>
+
+        <!-- Phone -->
+        <div>
+          <label for="company-phone" class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">Phone</label>
+          <input
+            id="company-phone"
+            name="phone"
+            [(ngModel)]="company.phone"
+            type="tel"
+            inputmode="tel"
+            autocomplete="tel"
+            [attr.aria-invalid]="fieldInvalid('phone')"
+            [attr.aria-describedby]="fieldInvalid('phone') ? 'err-phone' : null"
+            class="block w-full rounded-lg border p-2.5 bg-gray-50 dark:bg-gray-700 dark:text-white"
+            [class.border-red-500]="fieldInvalid('phone')"
+            [class.border-gray-300]="!fieldInvalid('phone')"
+            [class.dark:border-gray-600]="!fieldInvalid('phone')" />
+          <p *ngIf="fieldInvalid('phone')" id="err-phone" class="mt-1 text-xs text-red-600">{{ fieldErrors.phone }}</p>
+        </div>
+
+        <!-- Email -->
+        <div class="sm:col-span-2">
+          <label for="company-email" class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">Email</label>
+          <input
+            id="company-email"
+            name="email"
+            [(ngModel)]="company.email"
+            type="email"
+            autocomplete="email"
+            [attr.aria-invalid]="fieldInvalid('email')"
+            [attr.aria-describedby]="fieldInvalid('email') ? 'err-email' : null"
+            class="block w-full rounded-lg border p-2.5 bg-gray-50 dark:bg-gray-700 dark:text-white"
+            [class.border-red-500]="fieldInvalid('email')"
+            [class.border-gray-300]="!fieldInvalid('email')"
+            [class.dark:border-gray-600]="!fieldInvalid('email')" />
+          <p *ngIf="fieldInvalid('email')" id="err-email" class="mt-1 text-xs text-red-600">{{ fieldErrors.email }}</p>
+        </div>
+
+        <!-- Invoice Prefix -->
+        <div>
+          <label for="company-prefix" class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">Invoice Prefix</label>
+          <input
+            id="company-prefix"
+            name="invoicePrefix"
+            [(ngModel)]="company.invoicePrefix"
+            placeholder="INV"
+            maxlength="10"
+            class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
+        </div>
+
+        <!-- Next Invoice No -->
+        <div>
+          <label for="company-next-no" class="mb-2 block text-sm font-medium text-gray-900 dark:text-white">Next Invoice No</label>
+          <input
+            id="company-next-no"
+            name="nextInvoiceNo"
+            [(ngModel)]="company.nextInvoiceNo"
+            type="number"
+            min="1"
+            step="1"
+            class="block w-full rounded-lg border border-gray-300 bg-gray-50 p-2.5 dark:border-gray-600 dark:bg-gray-700 dark:text-white" />
+        </div>
+      </div>
+
+      <div class="mt-6 flex flex-wrap items-center gap-3">
+        <button
+          type="submit"
+          [disabled]="saving || companyForm.invalid"
+          class="rounded-lg bg-blue-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-800 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-blue-600 dark:hover:bg-blue-700">
+          {{ saving ? 'Saving…' : 'Save Details' }}
+        </button>
+
+        <span
+          *ngIf="message"
+          role="status"
+          aria-live="polite"
+          class="text-sm"
+          [class.text-green-600]="success"
+          [class.text-red-600]="!success">
+          {{ message }}
+        </span>
+      </div>
+    </form>
+  </div>
+</div>
